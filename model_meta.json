@@ -1,0 +1,9 @@
+{
+  "dataset_mode": "offline",
+  "qm9_target": "TPSA (offline demo)",
+  "target_mean": 35.79083251953125,
+  "target_std": 23.977659225463867,
+  "node_feat_dim": 14,
+  "edge_feat_dim": 6,
+  "test_mae": 5.153519948323567
+}
