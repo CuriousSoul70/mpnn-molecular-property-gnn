@@ -29,6 +29,36 @@ graph neural networks were all built and tested on it).
 4. **Predicts on any arbitrary molecule** you give it as a SMILES string
    — including molecules never seen during training (`predict.py`)
 
+## Execution order
+
+Only two files are ever run directly. Everything else is a library module
+imported by them — you don't run `featurize.py`, `model.py`,
+`dataset_synthetic.py`, or `qm9_loader.py` yourself.
+
+```
+1. python3 train.py [options]        <- run this first
+      |
+      | imports: featurize.py, model.py,
+      |          and dataset_synthetic.py OR qm9_loader.py
+      |
+      v
+   produces: model.pt, model_meta.json
+
+2. python3 predict.py "<smiles>"     <- run this second, as many times as you want
+      |
+      | imports: featurize.py, model.py
+      | loads:   model.pt, model_meta.json  (from step 1)
+      v
+   prints: predicted property value
+```
+
+`predict.py` depends on the checkpoint files (`model.pt`,
+`model_meta.json`) that `train.py` produces, so training always has to
+happen at least once before predicting. A pre-trained checkpoint is
+already included in this repo, so you can actually skip straight to step
+2 and run `predict.py` immediately — retrain only if you want to change
+the dataset, target property, or model settings.
+
 ## Quickstart
 
 ```bash
@@ -36,25 +66,24 @@ git clone https://github.com/<your-username>/mpnn-molecular-property-gnn.git
 cd mpnn-molecular-property-gnn
 pip install -r requirements.txt
 
-# Train on the offline demo dataset (works immediately, no internet needed
-# beyond the initial pip install)
+# Step 1: train (skip this if you just want to use the included checkpoint)
 python3 train.py --epochs 100 --target-mae 4.0
 
-# Predict the property for any molecule
+# Step 2: predict on any molecule
 python3 predict.py "CCO" "c1ccccc1O" "CC(=O)OC1=CC=CC=C1C(=O)O"
 ```
 
 ## Repo structure
 
-| File | Purpose |
-|---|---|
-| `featurize.py` | Converts a SMILES string into a graph (nodes, edges, features). Used identically at train time and inference time. |
-| `model.py` | The MPNN architecture — atoms exchange messages shaped by bond/distance features, then a readout produces a molecule-level prediction. |
-| `dataset_synthetic.py` | Builds the offline demo dataset (real molecules, RDKit-computed Topological Polar Surface Area as the target). |
-| `qm9_loader.py` | Downloads and loads **real QM9** (needs internet) — same featurization pipeline as the offline dataset, so it's a drop-in swap. |
-| `train.py` | Training loop: train/val/test split, MAE tracking, early stopping, checkpoint saving. |
-| `predict.py` | Loads a trained model and predicts the target property for any arbitrary molecule. |
-| `model.pt` / `model_meta.json` | A trained checkpoint (offline demo dataset) included so you can run `predict.py` immediately without retraining. |
+| File | Run directly? | Purpose |
+|---|---|---|
+| `train.py` | **Yes — run 1st** | Training loop: train/val/test split, MAE tracking, early stopping, checkpoint saving. |
+| `predict.py` | **Yes — run 2nd** | Loads a trained model and predicts the target property for any arbitrary molecule. |
+| `featurize.py` | No (imported) | Converts a SMILES string into a graph (nodes, edges, features). Used identically at train time and inference time. |
+| `model.py` | No (imported) | The MPNN architecture — atoms exchange messages shaped by bond/distance features, then a readout produces a molecule-level prediction. |
+| `dataset_synthetic.py` | No (imported by `train.py`) | Builds the offline demo dataset (real molecules, RDKit-computed Topological Polar Surface Area as the target). |
+| `qm9_loader.py` | No (imported by `train.py` with `--dataset qm9`) | Downloads and loads **real QM9** (needs internet) — same featurization pipeline as the offline dataset, so it's a drop-in swap. |
+| `model.pt` / `model_meta.json` | — (data, not code) | A trained checkpoint (offline demo dataset) included so you can run `predict.py` immediately without retraining. |
 
 ## Results (offline demo dataset)
 
