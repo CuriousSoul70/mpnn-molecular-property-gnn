@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific: generated/downloaded data (regenerable, can be large)
+cached_dataset.pt
+data/
+*.zip
+
+# Keep the included demo checkpoint, but ignore any new ones you train
+# locally under different names, e.g. from --out-prefix experiments
+model_*.pt
+!model.pt
+model_*_meta.json
+!model_meta.json
